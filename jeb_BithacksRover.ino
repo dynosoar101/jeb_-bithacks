@@ -40,3 +40,21 @@ void loop() {
   digitalWrite(motor1Pin1,HIGH);
   digitalWrite(motor1Pin2,LOW);
 }
+
+
+/*subroutine definitions for moving forward, left, and right*/
+//clears all movement
+void clearMoves(){
+  digitalWrite(motor1Pin1,LOW);
+  digitalWrite(motor1Pin2,LOW);
+  digitalWrite(motor1Pin3,LOW);
+  digitalWrite(motor1Pin4,LOW);
+}
+
+//forward
+void forward(){
+  digitalWrite(motor1Pin1,HIGH);
+  digitalWrite(motor1Pin2,LOW);
+  digitalWrite(motor1Pin4,HIGH);
+  digitalWrite(motor1Pin3,LOW);
+}
