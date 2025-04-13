@@ -61,7 +61,7 @@ while True:
         # Debug
         print(f"Fill ratio: {fill_ratio:.2f}")
 
-        if fill_ratio > 0.2:
+        if fill_ratio > 0.18:
             direction = "S"
             send_command("Too Close")
             print("TOO CLOSE — Stopping")
@@ -69,9 +69,9 @@ while True:
         else:
             center_x = x + w // 2
 
-            if center_x < frame_width * 0.2:
+            if center_x < frame_width * 0.25:
                 direction = "L"
-            elif center_x > frame_width * 0.8:
+            elif center_x > frame_width * 0.75:
                 direction = "R"
             else:
                 direction = "F"

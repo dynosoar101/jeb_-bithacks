@@ -39,6 +39,8 @@ void setup() {
   pinMode(heartPin3, OUTPUT);
   pinMode(heartPin4, OUTPUT);
 
+   //extendStick(heartPin1, heartPin2, heartPin3, heartPin4);
+  
   // Connect to Wi-Fi
   WiFi.begin(SECRET_SSID, SECRET_PASS);
   while (WiFi.status() != WL_CONNECTED) {
@@ -46,6 +48,8 @@ void setup() {
     Serial.println("Connecting to WiFi...");
   }
   Serial.println("Connected to WiFi");
+
+
 
   Udp.begin(localPort);
 
@@ -64,8 +68,6 @@ void loop() {
         close = true; 
         stopMotors(motorPin1, motorPin2, motorPin3, motorPin4);
         extendStick(heartPin1, heartPin2, heartPin3, heartPin4);
-        delay(1000);
-        stopMotors(heartPin1, heartPin2, heartPin3, heartPin4);
         while (1){}
       }
       else if (strcmp(packetBuffer, "F") == 0) {
@@ -130,8 +132,8 @@ void stopMotors(int motor1, int motor2, int motor3, int motor4) {
 }
 
 void extendStick(int motor1, int motor2, int motor3, int motor4){
-  digitalWrite(motor1, LOW);
-  digitalWrite(motor2, HIGH);
+  digitalWrite(motor1, HIGH);
+  digitalWrite(motor2, LOW);
   digitalWrite(motor3, LOW);
   digitalWrite(motor4, LOW);
 }
