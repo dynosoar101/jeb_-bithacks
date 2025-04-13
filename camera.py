@@ -1,98 +1,95 @@
+import socket
 import cv2
 import numpy as np
-import serial
-import time
 
-# Change to your actual COM port (check Arduino IDE -> Tools -> Port)
-ser = serial.Serial('COM5', 9600)
-time.sleep(2)  # Let the serial connection settle
+# --- Setup UDP socket ---
+arduino_ip = '172.20.10.4'  # Replace with your Arduino's IP address
+arduino_port = 2390           # Must match Arduino sketch
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
+def send_command(command):
+    try:
+        sock.sendto(command.encode(), (arduino_ip, arduino_port))
+        print(f"Sent command: {command}")
+    except Exception as e:
+        print(f"Error sending command: {e}")
+
+# --- OpenCV camera setup ---
 cap = cv2.VideoCapture(0)
+
+if not cap.isOpened():
+    print("Could not open camera.")
+    exit()
 
 while True:
     ret, frame = cap.read()
     if not ret:
         print("Failed to read frame.")
         break
-    
+
     frame_width = frame.shape[1]
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    lower_yellow = np.array([20, 100, 100])
-    upper_yellow = np.array([30, 255, 255])
-    mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
 
-    kernel = np.ones((5,5),np.uint8)
+    # Yellow color range
+    lower_pink = np.array([160, 80, 100])
+    upper_pink = np.array([175, 255, 255])
+    mask = cv2.inRange(hsv, lower_pink, upper_pink)
+
+    # Morphological filtering
+    kernel = np.ones((5, 5), np.uint8)
     mask = cv2.erode(mask, kernel, iterations=1)
     mask = cv2.dilate(mask, kernel, iterations=2)
 
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    direction = "S"  # Default to Stop
+    direction = "S"  # Default to stop
 
     if contours:
         largest = max(contours, key=cv2.contourArea)
         x, y, w, h = cv2.boundingRect(largest)
+
         frame_area = frame.shape[0] * frame.shape[1]
         object_area = w * h
         fill_ratio = object_area / frame_area
 
-        # Debugging info (optional)
+        # Debug
         print(f"Fill ratio: {fill_ratio:.2f}")
 
-        # Check if it's too close
-        if fill_ratio > 0.3:  # 30% of the frame covered
+        if fill_ratio > 0.3:
             direction = "S"
-            print("TOO CLOSE - Stopping")
-
-            print(f"Sending: {direction}")
-            ser.write(direction.encode())  # Send the command to Arduino
-            time.sleep(0.05)
+            print("TOO CLOSE — Stopping")
         else:
             center_x = x + w // 2
 
             if center_x < frame_width / 3:
-                direction = "L"  # Turn Left
-            elif center_x > 2 * frame_width / 3:
-                direction = "R"  # Turn Right
-            else:
-                direction = "F"  # Move Forward
-
-            print(f"Sending: {direction}")
-            ser.write(direction.encode())  # Send the command to Arduino
-            time.sleep(0.05)
-
-            # Your normal left/right/forward logic goes here
-            if x < frame_width // 2:
                 direction = "L"
-            elif x > frame_width // 2:
+            elif center_x > 2 * frame_width / 3:
                 direction = "R"
             else:
                 direction = "F"
 
-        frame_width = frame.shape[1]
+        send_command(direction)
 
+        # Display info on screen
+        cv2.putText(frame, f"Dir: {direction}  Fill: {fill_ratio:.2f}", (10, 30),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
     else:
         print("No yellow object detected")
-        ser.write(b"S")  # Send Stop
-
-    if 'fill_ratio' in locals():
-        cv2.putText(frame, f"Fill: {fill_ratio:.2f}", (10, 30),
+        send_command("S")
+        cv2.putText(frame, "No yellow detected", (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
-
+    # Show output
     cv2.imshow("Yellow Mask", mask)
     cv2.imshow("Camera", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# Send stop command before exiting
-try:
-    ser.write(b'S')  # Stop motors
-    print("Sent stop command to Arduino.")
-except Exception as e:
-    print(f"Couldn't send stop command: {e}")
+# On quit — stop the robot
+send_command("S")
+print("Sent stop command before exit.")
 
+# Cleanup
 cap.release()
-ser.close()
 cv2.destroyAllWindows()

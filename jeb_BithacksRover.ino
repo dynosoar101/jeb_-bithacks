@@ -1,62 +1,87 @@
 #include <Arduino.h>
+#include <WiFiS3.h>
+#include "arduino_secrets.h"  // Store your Wi-Fi credentials here
 
-const int motor1Pin1 = 2; //drives top left ouput pin - should be red motor wire
-const int motor1Pin2 = 3; //drives bottom left output pin - should be blk motor wire
-const int motor1Pin3 = 4; //drives bottom right output pin - should be blK motor wire
-const int motor1Pin4 = 5; //drives top right output pin should be red motor wire
+// Motor control pins
+const int motorPin1 = 3;
+const int motorPin2 = 4;
+const int motorPin3 = 5;
+const int motorPin4 = 6;
 
-char command;
+WiFiUDP Udp;
+unsigned int localPort = 2390;  // Local port to listen on
+char packetBuffer[255];         // Buffer to hold incoming packets
 
-void forward(); 
-void left();
+void forward();
 void right();
+void left();
 void stopMotors(); 
 
 void setup() {
-  Serial.begin(9600);
-  pinMode(motor1Pin1, OUTPUT);  // Motor A forward
-  pinMode(motor1Pin2, OUTPUT);  // Motor A backward
-  pinMode(motor1Pin3, OUTPUT);  // Motor B forward
-  pinMode(motor1Pin4, OUTPUT); // Motor B backward
+  Serial.begin(115200);
+  pinMode(motorPin1, OUTPUT);
+  pinMode(motorPin2, OUTPUT);
+  pinMode(motorPin3, OUTPUT);
+  pinMode(motorPin4, OUTPUT);
+
+  // Connect to Wi-Fi
+  WiFi.begin(SECRET_SSID, SECRET_PASS);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+  }
+  Serial.println("Connected to WiFi");
+
+  Udp.begin(localPort);
+
 }
 
 void loop() {
-  if (Serial.available() > 0) {
-    command = Serial.read();
-    switch (command) {
-      case 'F':
+  int packetSize = Udp.parsePacket();
+  if (packetSize) {
+    int len = Udp.read(packetBuffer, sizeof(packetBuffer) - 1);
+    if (len > 0) {
+      packetBuffer[len] = 0;  // Null-terminate the string
+      Serial.println("Received: " + String(packetBuffer));
+
+      // Control motors based on received command
+      if (strcmp(packetBuffer, "F") == 0) {
         forward();
-        break;
-      case 'L':
+      } else if (strcmp(packetBuffer, "L") == 0) {
         left();
-        break;
-      case 'R':
+      } else if (strcmp(packetBuffer, "R") == 0) {
         right();
-        break;
-      case 'S':
+      } else if (strcmp(packetBuffer, "S") == 0) {
         stopMotors();
-        break;
+      }
     }
   }
 }
 
-
 void forward() {
-  digitalWrite(motor1Pin1, HIGH); digitalWrite(motor1Pin2, LOW);
-  digitalWrite(motor1Pin3, HIGH); digitalWrite(motor1Pin4, LOW);
+  digitalWrite(motorPin1, HIGH);
+  digitalWrite(motorPin2, LOW);
+  digitalWrite(motorPin3, HIGH);
+  digitalWrite(motorPin4, LOW);
 }
 
 void left() {
-  digitalWrite(motor1Pin1, LOW); digitalWrite(motor1Pin2, HIGH);
-  digitalWrite(motor1Pin3, HIGH); digitalWrite(motor1Pin4, LOW);
+  digitalWrite(motorPin1, LOW);
+  digitalWrite(motorPin2, HIGH);
+  digitalWrite(motorPin3, HIGH);
+  digitalWrite(motorPin4, LOW);
 }
 
 void right() {
-  digitalWrite(motor1Pin1, HIGH); digitalWrite(motor1Pin2, LOW);
-  digitalWrite(motor1Pin3, LOW); digitalWrite(motor1Pin4, HIGH);
+  digitalWrite(motorPin1, HIGH);
+  digitalWrite(motorPin2, LOW);
+  digitalWrite(motorPin3, LOW);
+  digitalWrite(motorPin4, HIGH);
 }
 
 void stopMotors() {
-  digitalWrite(motor1Pin1, LOW); digitalWrite(motor1Pin2, LOW);
-  digitalWrite(motor1Pin3, LOW); digitalWrite(motor1Pin4, LOW);
+  digitalWrite(motorPin1, LOW);
+  digitalWrite(motorPin2, LOW);
+  digitalWrite(motorPin3, LOW);
+  digitalWrite(motorPin4, LOW);
 }
