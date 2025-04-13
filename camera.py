@@ -1,6 +1,7 @@
 import socket
 import cv2
 import numpy as np
+import time
 
 # --- Setup UDP socket ---
 arduino_ip = '172.20.10.4'  # Replace with your Arduino's IP address
@@ -30,15 +31,15 @@ while True:
     frame_width = frame.shape[1]
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    # # Pink color range
-    # lower_pink = np.array([160, 80, 100])
-    # upper_pink = np.array([175, 255, 255])
-    # mask = cv2.inRange(hsv, lower_pink, upper_pink)
+    # Pink color range
+    lower_pink = np.array([160, 80, 100])
+    upper_pink = np.array([175, 255, 255])
+    mask = cv2.inRange(hsv, lower_pink, upper_pink)
 
-    # yellow color range
-    lower_yellow = np.array([20, 100, 100])
-    upper_yellow = np.array([30, 255, 255])
-    mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+    # # yellow color range
+    # lower_yellow = np.array([0, 0, 200])
+    # upper_yellow = np.array([180, 40, 255])
+    # mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
 
     # Morphological filtering
     kernel = np.ones((5, 5), np.uint8)
@@ -60,21 +61,23 @@ while True:
         # Debug
         print(f"Fill ratio: {fill_ratio:.2f}")
 
-        if fill_ratio > 0.3:
+        if fill_ratio > 0.2:
             direction = "S"
             send_command("Too Close")
             print("TOO CLOSE — Stopping")
+            time.sleep(0.2)
         else:
             center_x = x + w // 2
 
-            if center_x < frame_width / 4:
+            if center_x < frame_width * 0.2:
                 direction = "L"
-            elif center_x > 2 * frame_width / 4:
+            elif center_x > frame_width * 0.8:
                 direction = "R"
             else:
                 direction = "F"
 
         send_command(direction)
+        time.sleep(0.2)
 
         # Display info on screen
         cv2.putText(frame, f"Dir: {direction}  Fill: {fill_ratio:.2f}", (10, 30),
@@ -82,6 +85,7 @@ while True:
     else:
         print("No yellow object detected")
         send_command("S")
+        time.sleep(0.2)
         cv2.putText(frame, "No yellow detected", (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 

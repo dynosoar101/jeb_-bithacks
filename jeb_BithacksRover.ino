@@ -14,6 +14,8 @@ const int heartPin2 = 7;
 const int heartPin3 = 8;
 const int heartPin4 = 9;
 
+bool close = true; 
+
 WiFiUDP Udp;
 unsigned int localPort = 2390;  // Local port to listen on
 char packetBuffer[255];         // Buffer to hold incoming packets
@@ -59,41 +61,28 @@ void loop() {
 
       // Control motors based on received command
       if (strcmp(packetBuffer, "Too Close") == 0){
+        close = true; 
         stopMotors(motorPin1, motorPin2, motorPin3, motorPin4);
         extendStick(heartPin1, heartPin2, heartPin3, heartPin4);
         delay(1000);
-        // while (1){
-        //   len = Udp.read(packetBuffer, sizeof(packetBuffer) - 1);
-        //   if (len > 0) {
-        //     packetBuffer[len] = 0;  // Null-terminate the string
-        //     Serial.println("Received: " + String(packetBuffer));
-
-        //     if (strcmp(packetBuffer, "F") == 0) {
-        //       break;   
-        //     } else if (strcmp(packetBuffer, "L") == 0) {
-        //       break; 
-        //     } else if (strcmp(packetBuffer, "R") == 0) {
-        //       break; 
-        //     } else if (strcmp(packetBuffer, "S") == 0) {
-        //       break; 
-        //     }
-        //   }
-        // }
+        stopMotors(heartPin1, heartPin2, heartPin3, heartPin4);
+        while (1){}
       }
       else if (strcmp(packetBuffer, "F") == 0) {
         forward(motorPin1, motorPin2, motorPin3, motorPin4);
         stopMotors(heartPin1, heartPin2, heartPin3, heartPin4);
       } else if (strcmp(packetBuffer, "L") == 0) {
         left(motorPin1, motorPin2, motorPin3, motorPin4);
-        // delay(300);
-        // forward(motorPin1, motorPin2, motorPin3, motorPin4);
-        // delay(500);
+        delay(1000);
+        forward(motorPin1, motorPin2, motorPin3, motorPin4);
+        delay(500);
+
         stopMotors(heartPin1, heartPin2, heartPin3, heartPin4);
       } else if (strcmp(packetBuffer, "R") == 0) {
         right(motorPin1, motorPin2, motorPin3, motorPin4);
-        // delay(300);
-        // forward(motorPin1, motorPin2, motorPin3, motorPin4);
-        // delay(500);
+        delay(300);
+        forward(motorPin1, motorPin2, motorPin3, motorPin4);
+        delay(500);
 
         stopMotors(heartPin1, heartPin2, heartPin3, heartPin4);
       } else if (strcmp(packetBuffer, "S") == 0) {
@@ -107,8 +96,8 @@ void loop() {
 void forward(int motor1, int motor2, int motor3, int motor4) {
   digitalWrite(motor1, HIGH);
   digitalWrite(motor2, LOW);
-  digitalWrite(motor3, LOW);
-  digitalWrite(motor4, HIGH);
+  digitalWrite(motor3, HIGH);
+  digitalWrite(motor4, LOW);
 }
 
 void backward(int motor1, int motor2, int motor3, int motor4) {
@@ -120,16 +109,16 @@ void backward(int motor1, int motor2, int motor3, int motor4) {
 
 
 void left(int motor1, int motor2, int motor3, int motor4) {
-  digitalWrite(motor1, HIGH);
+  digitalWrite(motor1, LOW);
   digitalWrite(motor2, LOW);
-  digitalWrite(motor3, LOW);
+  digitalWrite(motor3, HIGH);
   digitalWrite(motor4, LOW);
 }
 
 void right(int motor1, int motor2, int motor3, int motor4) {
-  digitalWrite(motor1, LOW);
+  digitalWrite(motor1, HIGH);
   digitalWrite(motor2, LOW);
-  digitalWrite(motor3, HIGH);
+  digitalWrite(motor3, LOW);
   digitalWrite(motor4, LOW);
 }
 
@@ -144,6 +133,6 @@ void extendStick(int motor1, int motor2, int motor3, int motor4){
   digitalWrite(motor1, LOW);
   digitalWrite(motor2, HIGH);
   digitalWrite(motor3, LOW);
-  digitalWrite(motor4, HIGH);
+  digitalWrite(motor4, LOW);
 }
 
