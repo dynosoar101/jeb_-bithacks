@@ -16,7 +16,7 @@ static const uint8_t RXPin = 3;
 SoftwareSerial softwareSerial(RXPin, TXPin);
 // Create a DFRobotDFPlayerMini object
 DFRobotDFPlayerMini MP3player;
-
+// create an actual random object
 AlmostRandom randomLib;
 
 void setup() {
@@ -34,16 +34,24 @@ void setup() {
   
   // Set the volume (0-30)
   MP3player.volume(30);
+  // int value = 3;
+  // MP3player.play(value);
+  // delay(2000);
+  // value = 2;
+  // MP3player.play(value);
 }
-int value = 1;
+
 
 void loop(){
-  int randomChance = randomLib.getRandomInt();
-  
+  //random chance variable to determine if a noise should be played
+  unsigned int randomChance = randomLib.getRandomInt();
+  //randomChance%5;
   delay(5000);
-  Serial.println(randomChance);
-  if(randomChance > 50){
+  //the ultimate way to make it random
+  if(randomChance%2 == 0){
+    Serial.println("this is happening");
     playNoiseAmbient();
+    //MP3player.play(2);
   }
 
 }
@@ -51,11 +59,13 @@ void loop(){
 /*sheep noises*/
 //plays ambient noises, sheep BAAAAA's
 void playNoiseAmbient(){
- // randomSoundFile = random(10);
- value = 1;
-  if(MP3player.readCurrentFileNumber() == -1){
-    MP3player.play(value);
-  }
+ int randomSoundFile = random(0,4);
+ Serial.println(randomSoundFile);
+ MP3player.play(randomSoundFile);
+ //value = 1;
+  // if(MP3player.readCurrentFileNumber() == -1){
+  //   MP3player.play(randomSoundFile);
+  // }
 
   
 }
