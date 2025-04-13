@@ -46,7 +46,7 @@ void loop(){
   //random chance variable to determine if a noise should be played
   unsigned int randomChance = randomLib.getRandomInt();
   //randomChance%5;
-  delay(5000);
+  delay(3000);
   //the ultimate way to make it random
   if(randomChance%2 == 0){
     Serial.println("this is happening");
@@ -59,7 +59,7 @@ void loop(){
 /*sheep noises*/
 //plays ambient noises, sheep BAAAAA's
 void playNoiseAmbient(){
- int randomSoundFile = random(0,4);
+ int randomSoundFile = random(1,4);
  Serial.println(randomSoundFile);
  MP3player.play(randomSoundFile);
  //value = 1;
