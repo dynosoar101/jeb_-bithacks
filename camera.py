@@ -30,10 +30,15 @@ while True:
     frame_width = frame.shape[1]
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    # Yellow color range
-    lower_pink = np.array([160, 80, 100])
-    upper_pink = np.array([175, 255, 255])
-    mask = cv2.inRange(hsv, lower_pink, upper_pink)
+    # # Pink color range
+    # lower_pink = np.array([160, 80, 100])
+    # upper_pink = np.array([175, 255, 255])
+    # mask = cv2.inRange(hsv, lower_pink, upper_pink)
+
+    # yellow color range
+    lower_yellow = np.array([20, 100, 100])
+    upper_yellow = np.array([30, 255, 255])
+    mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
 
     # Morphological filtering
     kernel = np.ones((5, 5), np.uint8)
@@ -57,13 +62,14 @@ while True:
 
         if fill_ratio > 0.3:
             direction = "S"
+            send_command("Too Close")
             print("TOO CLOSE — Stopping")
         else:
             center_x = x + w // 2
 
-            if center_x < frame_width / 3:
+            if center_x < frame_width / 4:
                 direction = "L"
-            elif center_x > 2 * frame_width / 3:
+            elif center_x > 2 * frame_width / 4:
                 direction = "R"
             else:
                 direction = "F"
@@ -80,7 +86,7 @@ while True:
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
     # Show output
-    cv2.imshow("Yellow Mask", mask)
+    cv2.imshow("Pink Mask", mask)
     cv2.imshow("Camera", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
