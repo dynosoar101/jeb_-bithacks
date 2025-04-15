@@ -1,2 +1,2 @@
-#define SECRET_SSID "VYiPhone"
-#define SECRET_PASS "huynhchye"
+#define SECRET_SSID "private"
+#define SECRET_PASS "private"
